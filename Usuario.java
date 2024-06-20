@@ -7,21 +7,32 @@ public class Usuario implements Biblioteca{
     private String nombreUsuario;
     private String mail;
     private String contrasenia;
-    private Set<String> biblioteca = new HashSet<String>();
+    private Set<String> biblioteca = new HashSet<>();
+    private Set<Usuario> amigos = new HashSet<>();
 
-
-    public void setUsuario(String nombreUsuario, String mail, String contrasenia, Set<String> biblioteca) {
+    public void Usuario(String nombreUsuario, String mail, String contrasenia) {
         this.nombreUsuario = nombreUsuario;
         this.mail = mail;
         this.contrasenia = contrasenia;
-        this.biblioteca = biblioteca;
     }
 
     public Set<String> getBiblioteca() {
         return biblioteca;
     }
+    public String getMail(){
+        return mail;
+    }
+    public Boolean revisarAmigos(Usuario amigo){
+        for (Usuario i : amigos){
+            if (i == amigo){
+                return true;
+            }
+        }
+        return false;
+    }
     public void serAmigo(Usuario nombreAmigo){
-        System.out.println("Ahora eres amigo de " + nombreAmigo);
+        amigos.add(nombreAmigo);
+        System.out.println("Ahora eres amigo de " + nombreAmigo.toString());
     }
 
     @Override
@@ -40,7 +51,7 @@ public class Usuario implements Biblioteca{
     public List<String> filtroNombre(String nombreJuego) {
         List<String> listaFiltrada = new ArrayList<>();
         for(String juego : biblioteca){
-            if(juego.startsWith(nombreJuego)){
+            if(juego.contains(nombreJuego)){
                 listaFiltrada.add(juego);
             }
             else{continue;}

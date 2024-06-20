@@ -10,5 +10,4 @@ public class Juegos {
     private JButton aceptarButton1;
     private JButton aceptarButton2;
 
-
 }
