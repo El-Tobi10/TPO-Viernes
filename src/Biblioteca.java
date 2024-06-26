@@ -1,8 +1,10 @@
-import java.util.List;
+package org.example;
+
+import java.sql.ResultSet;
 
 public interface Biblioteca {
     public int cantJuegos();
     public void queJuegosTenes();
-    public List<String> filtroNombre(String nombreJuego);
-    public List<String> filtroGenero(String nombreGenero);
+    public void buscarxNombre(String nombreJuego);
+    public void buscarxGenero(int idGenero);
 }
