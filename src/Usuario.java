@@ -53,7 +53,7 @@ public class Usuario extends Conexion implements Biblioteca{
         } catch (SQLException e) {
             System.err.println("Error al agregar Juego: " + e.getMessage());
         } finally {
-            System.out.println("Fua sos el mascapito del barrio agregaste " + cont + " juego/s");
+            System.out.println("Agregaste correctamente " + cont + " juego/s");
         }
     }
     public Set<Integer> getBiblioteca() {
