@@ -4,12 +4,12 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Juego extends Conexion{
+public abstract class Juego extends Conexion{
     private static String titulo;
     private static int id_genero;
     private static String lanzamiento;
     private static String desarrollador;
-
+    /*
     public Juego(String titulo, int id_genero, String lanzamiento, String desarrollador) {
         Juego.titulo = titulo;
         Juego.id_genero = id_genero;
@@ -42,7 +42,7 @@ public class Juego extends Conexion{
     }
     public String getDesarrollador(){
         return desarrollador;
-    }
+    }*/
 
     public void obtenerJuegos() {
         try (Connection conexion = obtenerConexion();

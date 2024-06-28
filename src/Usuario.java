@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
 public class Usuario extends Conexion implements Biblioteca{
     private String usuario;
     private String email;
@@ -39,10 +40,22 @@ public class Usuario extends Conexion implements Biblioteca{
         }
     }
 
-    public void agregarJuegosBiblioteca(Integer a){
-
+    public void agregarJuegosBiblioteca(Integer id) {
+        int cont = 0;
+        try (Connection conexion = obtenerConexion()) {
+            PreparedStatement insert = conexion.prepareStatement("SELECT * FROM juegos WHERE id_juego = ?");
+            insert.setInt(1, id);
+            ResultSet resultado = insert.executeQuery();
+            while (resultado.next()) {
+                cont++;
+                biblioteca.add(resultado.getInt("id_juego"));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al agregar Juego: " + e.getMessage());
+        } finally {
+            System.out.println("Fua sos el mascapito del barrio agregaste " + cont + " juego/s");
+        }
     }
-
     public Set<Integer> getBiblioteca() {
         return biblioteca;
     }
@@ -67,14 +80,6 @@ public class Usuario extends Conexion implements Biblioteca{
         System.out.println("Ahora eres amigo de " + nombreAmigo.toString());
     }
 
-
-
-    @Override
-    public int cantJuegos(){
-        return biblioteca.size();
-    }
-
-    @Override
     public void queJuegosTenes() {
         try (Connection conexion = obtenerConexion()){
             for (int videojuego : biblioteca){
@@ -98,15 +103,43 @@ public class Usuario extends Conexion implements Biblioteca{
 
         }catch (SQLException e) {System.err.println("Error al obtener los datos de la persona: " + e.getMessage());}
     }
+
+    @Override
+    public int cantJuegos(){
+        return biblioteca.size();
+    }
+
+
+
     @Override
     public void buscarxNombre(String nombreJuego) {
-        List<String> listaFiltrada = new ArrayList<>();}
+        try (Connection conexion = obtenerConexion()){
+            PreparedStatement statement = conexion.prepareStatement("SELECT * FROM juegos WHERE titlo LIKE '%'?'%'");
+            statement.setString(1, nombreJuego);
+            ResultSet resultSet = statement.executeQuery();
+            System.out.println("Lista de Jueguitos");
+            while (resultSet.next()){
+                int idjuego = resultSet.getInt("id_juego");
+                String juegoTitulo = resultSet.getString("titulo");
+                int juegoGenero = resultSet.getInt("id_genero");
+                String juegoLanzamineto = resultSet.getString("lanzamiento");
+                String juegoDesarrollador = resultSet.getString("desarrollador");
+
+                System.out.println("ID Juego: " + idjuego);
+                System.out.println("Titulo: " + juegoTitulo);
+                System.out.println("Id Genero: " + juegoGenero);
+                System.out.println("Lanzamiento: " + juegoLanzamineto);
+                System.out.println("Desarrollador: " + juegoDesarrollador);
+                System.out.println("-------------------------");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al obtener los datos del juego: " + e.getMessage());
+        }
+    }
 
 
-    @Override
+
     public void buscarxGenero(int id_genero) {
-        List<Juego> gameGenero = new ArrayList<>();
-
         try (Connection conexion = obtenerConexion()){
              PreparedStatement statement = conexion.prepareStatement("SELECT * FROM juegos WHERE id_genero = ?");
              statement.setInt(1, id_genero);
