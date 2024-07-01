@@ -12,7 +12,7 @@ CREATE TABLE generos(
 
 CREATE TABLE juegos (
     id_juego SERIAL PRIMARY KEY,
-    titulo varchar(100) NOT NULL,
+    titulo varchar(100) NOT NULL UNIQUE,
 	id_genero int ,
     lanzamiento DATE NOT NULL,
     desarrollador varchar(50) NOT NULL,
