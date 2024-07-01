@@ -1,4 +1,9 @@
 package org.example;
+///Tobias Alfonso 1169215
+///Gabriel Domingo 1168660
+///Lautaro papaianni 1170805
+///Agustin Lamendola 1164095
+///Santino Lozano 1173470
 
 import java.util.Scanner;
 
