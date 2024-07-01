@@ -40,20 +40,21 @@ public class Usuario extends Conexion implements Biblioteca{
         }
     }
 
+    public String getUsuario() {
+        return usuario;
+    }
+
     public void agregarJuegosBiblioteca(Integer id) {
-        int cont = 0;
         try (Connection conexion = obtenerConexion()) {
             PreparedStatement insert = conexion.prepareStatement("SELECT * FROM juegos WHERE id_juego = ?");
             insert.setInt(1, id);
             ResultSet resultado = insert.executeQuery();
             while (resultado.next()) {
-                cont++;
                 biblioteca.add(resultado.getInt("id_juego"));
+                System.out.println("Agregaste correctamente: " + resultado.getString("titulo") + " a tu biblioteca");
             }
         } catch (SQLException e) {
             System.err.println("Error al agregar Juego: " + e.getMessage());
-        } finally {
-            System.out.println("Agregaste correctamente " + cont + " juego/s");
         }
     }
     public Set<Integer> getBiblioteca() {
@@ -76,30 +77,56 @@ public class Usuario extends Conexion implements Biblioteca{
         return false;
     }
     public void serAmigo(Usuario nombreAmigo){
-        amigos.add(nombreAmigo);
-        System.out.println("Ahora eres amigo de " + nombreAmigo.toString());
+        if (!amigos.contains(nombreAmigo)){
+            amigos.add(nombreAmigo);
+            System.out.println("Ahora eres amigo de " + nombreAmigo.getUsuario());
+        }else {
+            System.out.println("Ya eres amigo de " + nombreAmigo.getUsuario());
+        }
     }
 
     public void queJuegosTenes() {
         try (Connection conexion = obtenerConexion()){
-            for (int videojuego : biblioteca){
-                PreparedStatement buscarID = conexion.prepareStatement("SELECT * FROM juegos WHERE id_juego = ?");
-                buscarID.setInt(1, videojuego);
-                ResultSet resultSet = buscarID.executeQuery();
-                System.out.println("Lista de Juegos en Biblioteca:");
-                while (resultSet.next()){
-                    String juegoTitulo = resultSet.getString("titulo");
-                    int juegoGenero = resultSet.getInt("id_genero");
-                    String juegoLanzamiento = resultSet.getString("lanzamiento");
-                    String juegoDesarrollador = resultSet.getString("desarrollador");
-
-                    System.out.println("Tutulo: " + juegoTitulo);
-                    System.out.println("Id Genero: " + juegoGenero);
-                    System.out.println("Lanzamiento: " + juegoLanzamiento);
-                    System.out.println("Desarrollador: " + juegoDesarrollador);
-                    System.out.println("------------------------");
-                };
+            List<String> columnas = new ArrayList<>();
+            PreparedStatement stmtColumnas = conexion.prepareStatement(
+                    "SELECT column_name FROM information_schema.columns " +
+                            "WHERE table_schema = 'public' AND table_name = ? " +
+                            "ORDER BY ordinal_position"
+            );
+            stmtColumnas.setString(1, "juegos");
+            ResultSet rsColumnas = stmtColumnas.executeQuery();
+            while (rsColumnas.next()) {
+                columnas.add(rsColumnas.getString("column_name"));
             }
+
+            // Encabezado
+            System.out.println("Lista de Juegos en la Biblioteca de " + getUsuario());
+            System.out.println();
+            for (String columna : columnas) {
+                if (columna.equals("id_juego")){
+                    System.out.printf("%-10s",columna);
+                }
+                else{System.out.printf("%-30s", columna);}
+            }
+            System.out.println();
+            System.out.println("-".repeat(30 * columnas.size()));
+
+            // Juegos
+            for (int videojuego : biblioteca){
+                PreparedStatement stmtDatos = conexion.prepareStatement("SELECT * FROM juegos WHERE id_juego = ?");
+                stmtDatos.setInt(1, videojuego);
+                ResultSet rsDatos = stmtDatos.executeQuery();
+                while (rsDatos.next()){
+                    for (String columna : columnas) {
+                        if (columna.equals("id_juego")){
+                            System.out.printf("%-10s",rsDatos.getString(columna));
+                        }
+                        else{System.out.printf("%-30s", rsDatos.getString(columna));}
+                    }
+                    System.out.println();
+                }
+            }
+            System.out.println("-".repeat(30 * columnas.size()));
 
         }catch (SQLException e) {System.err.println("Error al obtener los datos de la persona: " + e.getMessage());}
     }
@@ -114,27 +141,48 @@ public class Usuario extends Conexion implements Biblioteca{
     @Override
     public void buscarxNombre(String nombreJuego) {
         try (Connection conexion = obtenerConexion()){
-            PreparedStatement statement = conexion.prepareStatement("SELECT * FROM juegos WHERE titlo LIKE '%'?'%'");
-            statement.setString(1, nombreJuego);
-            ResultSet resultSet = statement.executeQuery();
-            System.out.println("Lista de Jueguitos");
-            while (resultSet.next()){
-                int idjuego = resultSet.getInt("id_juego");
-                String juegoTitulo = resultSet.getString("titulo");
-                int juegoGenero = resultSet.getInt("id_genero");
-                String juegoLanzamineto = resultSet.getString("lanzamiento");
-                String juegoDesarrollador = resultSet.getString("desarrollador");
-
-                System.out.println("ID Juego: " + idjuego);
-                System.out.println("Titulo: " + juegoTitulo);
-                System.out.println("Id Genero: " + juegoGenero);
-                System.out.println("Lanzamiento: " + juegoLanzamineto);
-                System.out.println("Desarrollador: " + juegoDesarrollador);
-                System.out.println("-------------------------");
+            List<String> columnas = new ArrayList<>();
+            PreparedStatement stmtColumnas = conexion.prepareStatement(
+                    "SELECT column_name FROM information_schema.columns " +
+                            "WHERE table_schema = 'public' AND table_name = ? " +
+                            "ORDER BY ordinal_position"
+            );
+            stmtColumnas.setString(1, "juegos");
+            ResultSet rsColumnas = stmtColumnas.executeQuery();
+            while (rsColumnas.next()) {
+                columnas.add(rsColumnas.getString("column_name"));
             }
+
+            // Encabezado
+            System.out.println("Lista de Juegos en Biblioteca de " + getUsuario() + ":");
+            for (String columna : columnas) {
+                if (columna.equals("id_juego")){
+                    System.out.printf("%-10s",columna);
+                }
+                else{System.out.printf("%-30s", columna);}
+            }
+            System.out.println();
+            System.out.println("-".repeat(30 * columnas.size()));
+
+            // Juegos
+            for (int videojuego : biblioteca){
+                PreparedStatement stmtDatos = conexion.prepareStatement("SELECT * FROM juegos WHERE titulo LIKE ? And id_juego = ?");
+                stmtDatos.setString(1, "%"+nombreJuego+"%");
+                stmtDatos.setInt(2, videojuego);
+                ResultSet rsDatos = stmtDatos.executeQuery();
+                while (rsDatos.next()) {
+                    for (String columna : columnas) {
+                        if (columna.equals("id_juego")) {
+                            System.out.printf("%-10s", rsDatos.getString(columna));
+                        } else {
+                            System.out.printf("%-30s", rsDatos.getString(columna));
+                        }
+                    }System.out.println();
+                }
+            }
+            System.out.println("-".repeat(30 * columnas.size()));
         } catch (SQLException e) {
-            System.out.println("Error al obtener los datos del juego: " + e.getMessage());
-        }
+            System.out.println("Error al obtener los datos del juego: " + e.getMessage());}
     }
 
 
@@ -163,17 +211,14 @@ public class Usuario extends Conexion implements Biblioteca{
 
     }
 
-    public boolean insertarJuegos(String titulo, int id_genero, String lanzamiento, String desarrollador) {
+    public void insertarJuegos(String titulo, int id_genero, String lanzamiento, String desarrollador) {
         Connection conn = null;
         PreparedStatement pstmt = null;
-        boolean resultado = false;
         if (email.contains("@estym.com")){
-
             try {
                 conn = obtenerConexion();
                 if (conn != null) {
                     String sql = "INSERT INTO juegos (titulo, id_genero, lanzamiento, desarrollador) VALUES ( ?,?,?,?)";
-
 
                     pstmt = conn.prepareStatement(sql);
                     pstmt.setString(1, titulo);
@@ -181,11 +226,9 @@ public class Usuario extends Conexion implements Biblioteca{
                     pstmt.setDate(3, Date.valueOf(lanzamiento));
                     pstmt.setString(4, desarrollador);
 
-
                     int rowsAffected = pstmt.executeUpdate();
-                    System.out.println(rowsAffected + " juego(s) insertado(s).");
+                    System.out.println(rowsAffected + " juego " + titulo + " insertado correctamente.");
 
-                    resultado = rowsAffected > 0;
                 }
 
             } catch (SQLException e) {
@@ -203,7 +246,6 @@ public class Usuario extends Conexion implements Biblioteca{
         }
         else{System.out.println("Este usuario no tiene permisos para agregar videojuegos.");}
 
-        return resultado;
     }
 
 

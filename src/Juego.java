@@ -5,72 +5,66 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Juego extends Conexion{
-    private static String titulo;
-    private static int id_genero;
-    private static String lanzamiento;
-    private static String desarrollador;
-    /*
-    public Juego(String titulo, int id_genero, String lanzamiento, String desarrollador) {
-        Juego.titulo = titulo;
-        Juego.id_genero = id_genero;
-        Juego.lanzamiento = lanzamiento;
-        Juego.desarrollador = desarrollador;
-    }
-    public void setTitulo(String titulo){
-        Juego.titulo = titulo;
-    }
-    public String getTitulo(){
-        return titulo;
-    }
-
-    public void setId_genero(int id_genero){
-        Juego.id_genero = id_genero;
-    }
-    public int getId_genero(){
-        return id_genero;
-    }
-
-    public void setLanzamiento(String lanzamiento){
-        Juego.lanzamiento = lanzamiento;
-    }
-    public String getLanzamiento(){
-        return lanzamiento;
-    }
-
-    public void setDesarrollador(String desarrollador){
-        Juego.desarrollador = desarrollador;
-    }
-    public String getDesarrollador(){
-        return desarrollador;
-    }*/
 
     public void obtenerJuegos() {
-        try (Connection conexion = obtenerConexion();
-             PreparedStatement statement = conexion.prepareStatement("SELECT * FROM juegos");
-             ResultSet resultSet = statement.executeQuery()) {
-
-            while (resultSet.next()){
-                int idjuego = resultSet.getInt("id_juego");
-                String juegoTitulo = resultSet.getString("titulo");
-                int juegoGenero = resultSet.getInt("id_genero");
-                String juegoLanzamiento = resultSet.getString("lanzamiento");
-                String juegoDesarrollador = resultSet.getString("desarrollador");
-
-                System.out.println("ID: " + idjuego);
-                System.out.println("Tutulo: " + juegoTitulo);
-                System.out.println("ID Genero: " + juegoGenero);
-                System.out.println("Lanzamiento: " + juegoLanzamiento);
-                System.out.println("Desarrollador: " + juegoDesarrollador);
-                System.out.println("------------------------");
+        try (Connection conexion = obtenerConexion();){
+             List<String> columnas = new ArrayList<>();
+             PreparedStatement stmtColumnas = conexion.prepareStatement(
+                     "SELECT column_name FROM information_schema.columns " +
+                             "WHERE table_schema = 'public' AND table_name = ? " +
+                             "ORDER BY ordinal_position"
+             );
+             stmtColumnas.setString(1, "juegos");
+             ResultSet rsColumnas = stmtColumnas.executeQuery();
+            while (rsColumnas.next()) {
+            columnas.add(rsColumnas.getString("column_name"));
             }
+
+            // Encabezado
+            System.out.println("Los juegos disponibles de la tienda son: ");
+            for (String columna : columnas) {
+                if (columna.equals("id_juego")){
+                    System.out.printf("%-10s",columna);
+                }
+                else{System.out.printf("%-30s", columna);}
+            }
+            System.out.println();
+            System.out.println("-".repeat(30 * columnas.size()));
+
+            // Juegos
+            PreparedStatement stmtDatos = conexion.prepareStatement("SELECT * FROM juegos");
+            ResultSet rsDatos = stmtDatos.executeQuery();
+            while (rsDatos.next()) {
+                for (String columna : columnas) {
+                    if (columna.equals("id_juego")){
+                        System.out.printf("%-10s",rsDatos.getString(columna));
+                    }
+                    else{System.out.printf("%-30s", rsDatos.getString(columna));}
+                }
+                System.out.println();
+            }
+            System.out.println("-".repeat(30 * columnas.size()));
         } catch (SQLException e) {
             System.err.println("Error al obtener los datos de la persona: " + e.getMessage());
         }
 
-
-
     }
 
+    public String obtenerGeneros(int id){
+        String generos = "";
+        try(Connection conexion = obtenerConexion()){
+            String query = "Select * from generos WHERE id_genero = ?";
+            PreparedStatement stmtGeneros = conexion.prepareStatement(query);
+            stmtGeneros.setInt(1, id);
+            ResultSet genero = stmtGeneros.executeQuery();
+            while (genero.next()){
+                generos = genero.getString("genero");
+            }
+            return generos;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
 

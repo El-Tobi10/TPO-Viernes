@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Set;
 
 public class BibliotecaCompartida extends Conexion implements Biblioteca {
-    private Set<Usuario> propietarios = new HashSet<>();
-    private Set<Integer> biblioCompartida = new HashSet<>();
+    private final Set<Usuario> propietarios = new HashSet<>();
+    private final Set<Integer> biblioCompartida = new HashSet<>();
 
     public void armarBiblioteca(Usuario usuario1, Usuario usuario2){
         if (usuario1.revisarAmigos(usuario2) && usuario2.revisarAmigos(usuario1)){
@@ -29,26 +29,49 @@ public class BibliotecaCompartida extends Conexion implements Biblioteca {
     }
     public void queJuegosTenes() {
         try (Connection conexion = obtenerConexion()){
-            for (int videojuego : biblioCompartida){
-                PreparedStatement buscarID = conexion.prepareStatement("SELECT * FROM juegos WHERE id_juego = ?");
-                buscarID.setInt(1, videojuego);
-                ResultSet resultSet = buscarID.executeQuery();
-                System.out.println("Lista de Juegos en Biblioteca:");
-                while (resultSet.next()){
-                    String juegoTitulo = resultSet.getString("titulo");
-                    int juegoGenero = resultSet.getInt("id_genero");
-                    String juegoLanzamiento = resultSet.getString("lanzamiento");
-                    String juegoDesarrollador = resultSet.getString("desarrollador");
 
-                    System.out.println("Tutulo: " + juegoTitulo);
-                    System.out.println("Id Genero: " + juegoGenero);
-                    System.out.println("Lanzamiento: " + juegoLanzamiento);
-                    System.out.println("Desarrollador: " + juegoDesarrollador);
-                    System.out.println("------------------------");
-                };
+            List<String> columnas = new ArrayList<>();
+            PreparedStatement stmtColumnas = conexion.prepareStatement(
+                    "SELECT column_name FROM information_schema.columns " +
+                            "WHERE table_schema = 'public' AND table_name = ? " +
+                            "ORDER BY ordinal_position"
+            );
+            stmtColumnas.setString(1, "juegos");
+            ResultSet rsColumnas = stmtColumnas.executeQuery();
+            while (rsColumnas.next()) {
+                columnas.add(rsColumnas.getString("column_name"));
             }
 
-        }catch (SQLException e) {System.err.println("Error al obtener los datos de la persona: " + e.getMessage());}
+            // Encabezado
+            System.out.println("Lista de Juegos en Biblioteca Compartida:");
+            for (String columna : columnas) {
+                if (columna.equals("id_juego")){
+                    System.out.printf("%-10s",columna);
+                }
+                else{System.out.printf("%-30s", columna);}
+            }
+            System.out.println();
+            System.out.println("-".repeat(30 * columnas.size()));
+
+            // Juegos
+            for (int videojuego : biblioCompartida){
+                PreparedStatement stmtDatos = conexion.prepareStatement("SELECT * FROM juegos WHERE id_juego = ?");
+                stmtDatos.setInt(1, videojuego);
+                ResultSet rsDatos = stmtDatos.executeQuery();
+                while (rsDatos.next()){
+                    for (String columna : columnas) {
+                        if (columna.equals("id_juego")){
+                            System.out.printf("%-10s",rsDatos.getString(columna));
+                        }
+                        else{System.out.printf("%-30s", rsDatos.getString(columna));}
+                    }
+                    System.out.println();
+                }
+            }
+            System.out.println("-".repeat(30 * columnas.size()));
+        } catch (SQLException e) {
+            System.err.println("Error al obtener los datos de la persona: " + e.getMessage());
+        }
     }
 
     @Override
@@ -60,28 +83,47 @@ public class BibliotecaCompartida extends Conexion implements Biblioteca {
     @Override
     public void buscarxNombre(String nombreJuego) {
         try (Connection conexion = obtenerConexion()){
-            PreparedStatement statement = conexion.prepareStatement("SELEC * FROM juegos WHERE tiutlo = LIKE %?%");
-            statement.setString(1, nombreJuego);
-            ResultSet resultSet = statement.executeQuery();
-            System.out.println("Lista de Jueguitos");
-            while (resultSet.next()){
-                int idjuego = resultSet.getInt("id_juego");
-                String juegoTitulo = resultSet.getString("titulo");
-                int juegoGenero = resultSet.getInt("id_genero");
-                String juegoLanzamineto = resultSet.getString("lanzamiento");
-                String juegoDesarrollador = resultSet.getString("desarrollador");
-
-                System.out.println("ID Juego: " + idjuego);
-                System.out.println("Titulo: " + juegoTitulo);
-                System.out.println("Id Genero: " + juegoGenero);
-                System.out.println("Lanzamiento: " + juegoLanzamineto);
-                System.out.println("Desarrollador: " + juegoDesarrollador);
-                System.out.println("-------------------------");
+            List<String> columnas = new ArrayList<>();
+            PreparedStatement stmtColumnas = conexion.prepareStatement(
+                    "SELECT column_name FROM information_schema.columns " +
+                            "WHERE table_schema = 'public' AND table_name = ? " +
+                            "ORDER BY ordinal_position"
+            );
+            stmtColumnas.setString(1, "juegos");
+            ResultSet rsColumnas = stmtColumnas.executeQuery();
+            while (rsColumnas.next()) {
+                columnas.add(rsColumnas.getString("column_name"));
             }
-        } catch (SQLException e) {
-            System.out.println("Error al obtener los datos del juego: " + e.getMessage());
+
+            // Encabezado
+            System.out.println("Lista de Juegos en Biblioteca Compartida:");
+            for (String columna : columnas) {
+                if (columna.equals("id_juego")){
+                    System.out.printf("%-10s",columna);
+                }
+                else{System.out.printf("%-30s", columna);}
+            }
+            System.out.println();
+            System.out.println("-".repeat(30 * columnas.size()));
+
+            // Juegos
+            for (int videojuego : biblioCompartida){
+                PreparedStatement stmtDatos = conexion.prepareStatement("SELECT * FROM juegos WHERE titulo LIKE ? And id_juego = ?");
+                stmtDatos.setString(1, "%"+nombreJuego+"%");
+                stmtDatos.setInt(2, videojuego);
+                ResultSet rsDatos = stmtDatos.executeQuery();
+                while (rsDatos.next()) {
+                    for (String columna : columnas) {
+                        if (columna.equals("id_juego")) {
+                            System.out.printf("%-10s", rsDatos.getString(columna));
+                        } else {
+                            System.out.printf("%-30s", rsDatos.getString(columna));
+                        }
+                    }System.out.println();
+                }
+            }
+            System.out.println("-".repeat(30 * columnas.size()));
+            } catch (SQLException e) {
+            System.out.println("Error al obtener los datos del juego: " + e.getMessage());}
         }
-    }
-
 }
-
