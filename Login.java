@@ -1,4 +1,6 @@
-package example;
+package org.example;
+
+import org.example.Usuario;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,7 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static example.Conexion.obtenerConexion;
+import static org.example.Conexion.obtenerConexion;
 
 public class Login extends JDialog {
     private JTextField tfusuario;
@@ -27,8 +29,7 @@ public class Login extends JDialog {
         btnRegistro.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                register register = new register(parent);
-                loginPanel.setVisible(false);
+                register register = new register(null);
             }
         });
         btInicioSesion.addActionListener(new ActionListener(){
@@ -49,7 +50,6 @@ public class Login extends JDialog {
                 }
             }
         });
-
         setVisible(true);
     }
     Usuario user;
