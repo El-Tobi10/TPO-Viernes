@@ -5,6 +5,8 @@ package org.example;
 ///Agustin Lamendola 1164095
 ///Santino Lozano 1173470
 
+import example.Login;
+
 import java.util.Scanner;
 
 import static org.example.Tienda.unicaTienda;
@@ -57,6 +59,8 @@ public class Main {
         gaby_tobias.buscarxNombre("Resident");
 
         unicaTienda.buscarxGenero(27);
+
+        new Login(null);
     }
 
 }
