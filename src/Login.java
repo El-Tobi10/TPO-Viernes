@@ -1,4 +1,4 @@
-package org.example;
+package example;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,39 +8,48 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.example.Conexion.cerrarConexion;
-import static org.example.Conexion.obtenerConexion;
+import static example.Conexion.obtenerConexion;
 
 public class Login extends JDialog {
     private JTextField tfusuario;
     private JPasswordField pfcontrasenia;
     private JButton btInicioSesion;
     private JPanel loginPanel;
-    private JTextField tfEmail;
+    private JButton btnRegistro;
 
     public Login(JFrame parent) {
         super(parent);
         setTitle("Login");
         setContentPane(loginPanel);
         setMinimumSize(new Dimension(670,475));
-        setModal(true);
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        btInicioSesion.addActionListener(new ActionListener() {
+        btnRegistro.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String usuario = tfusuario.getText(), mail = tfEmail.getText();
-                String contrasenia = String.valueOf(pfcontrasenia.getPassword());
+                dispose();
+                register register = new register(null);
+            }
+        });
+        btInicioSesion.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                String usuario = tfusuario.getText();
+                String contrasenia = new String(pfcontrasenia.getPassword());
 
-                user = getAuthenticatedUser(usuario,mail,contrasenia);
-
-                if (user != null) {
+                resultado = getAuthenticatedUser(usuario,contrasenia);
+                if (!resultado.isEmpty()) {
+                    JOptionPane.showMessageDialog(loginPanel, "Bienvenido a Estym, "+ resultado.get(0),
+                            "Bienvenido",
+                            JOptionPane.INFORMATION_MESSAGE);
                     dispose();
+                    new TPO_Viernes();
+
                 }
                 else {
-                    JOptionPane.showMessageDialog(Login.this,
-                            "Usuario o Contraseña incorecta",
+                    JOptionPane.showMessageDialog(loginPanel,
+                            "Usuario o Contraseña incorrecta",
                             "Pruebe otra vez",
                             JOptionPane.ERROR_MESSAGE);
                 }
@@ -48,38 +57,29 @@ public class Login extends JDialog {
         });
         setVisible(true);
     }
-    Usuario user;
-    private Usuario getAuthenticatedUser(String usuario, String mail, String contrasenia){
-        Usuario user = null;
 
-        boolean resultado = false;
+    public List<String> resultado;
+
+    private List<String> getAuthenticatedUser(String usuario, String contrasenia){
+        resultado = new ArrayList<>();
         try(Connection connection = obtenerConexion()) {
-            PreparedStatement iniciosecion = connection.prepareStatement("SELECT * FROM usuario WHERE usuario = ? AND password = ? AND email = ?");
-
-            iniciosecion.setString(1, usuario);
-            iniciosecion.setString(2, contrasenia);
-            System.out.printf("Inicio Secion: %s\n", iniciosecion);
-
-            ResultSet resultSet = iniciosecion.executeQuery();
-
-            if (resultSet.next()){
-                user = new Usuario(resultSet.getString("usuario"),
-                        resultSet.getString("password"),
-                        resultSet.getString("email"));
+            PreparedStatement is = connection.prepareStatement("select * from usuarios where usuario = ? and contrasenia = ?");
+            is.setString(1, usuario);
+            is.setString(2, contrasenia);
+            ResultSet rs = is.executeQuery();
+            if(rs.next()){
+                 String usuario1 = rs.getString("usuario");
+                 resultado.add(usuario1);
+                 String contra = rs.getString("contrasenia");
+                 resultado.add(contra);
             }
-
         }
-        catch (SQLException e){
-            System.err.println("Error al ingresar usuario: " + e.getMessage());
-        }
-        finally {
-            cerrarConexion();
-        }
-        return user;
+        catch (SQLException e){System.err.println("Error al ingresar usuario: " + e.getMessage());}
+        return resultado;
     }
 
     public static void main(String[] args) {
         Login login = new Login(null);
-        Usuario user = login.user;
     }
+
 }

@@ -1,4 +1,4 @@
-package org.example;
+package example;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,8 +8,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import static org.example.Conexion.cerrarConexion;
-import static org.example.Conexion.obtenerConexion;
+import static example.Conexion.cerrarConexion;
+import static example.Conexion.obtenerConexion;
 
 public class register extends JDialog{
     private JTextField tfusuario;
@@ -24,27 +24,32 @@ public class register extends JDialog{
         super(parent);
         setTitle("Create New Account");
         setContentPane(registerPanel);
-        setMinimumSize(new Dimension(450, 474));
+        setMinimumSize(new Dimension(670, 474));
         setModal(true);
         setLocationRelativeTo(parent);
 
         btRegister.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                registerUser();
+                if (registerUser()){
+                    dispose();
+                    Login login = new Login(null);}
             }
         });
         btCancel.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                tfEmail.setText("");
+                tfusuario.setText("");
+                pfcontrasenia.setText("");
+                pfConfirmPasword.setText("");
             }
         });
 
         setVisible(true);
     }
 
-    private void registerUser() {
+    private boolean registerUser() {
         String usuario = tfusuario.getText();
         String email = tfEmail.getText();
         String contrasenia = pfcontrasenia.getText();
@@ -55,7 +60,8 @@ public class register extends JDialog{
                     "All fields are required",
                     "Try Again",
                     JOptionPane.ERROR_MESSAGE);
-            return;
+
+            return false;
         }
 
         if (!contrasenia.equals(confirmPassword)) {
@@ -63,24 +69,24 @@ public class register extends JDialog{
                     "Comfirm password does not match",
                     "Try again",
                     JOptionPane.ERROR_MESSAGE);
-            return;
+            return false;
         }
 
-        user = addUserToDatabase(usuario,email,contrasenia);
-        if (user != null) {
-            dispose();
+        boolean resultado = addUserToDatabase(usuario,email,contrasenia);
+        if (resultado) {
+            return true;
         }
         else{
             JOptionPane.showMessageDialog(this,
                     "Failed to register",
                     "Try again",
                     JOptionPane.ERROR_MESSAGE);
+            return false;
         }
     }
 
-    public User user;
-    private User addUserToDatabase(String usuario, String email, String contrasenia) {
-        User user = null;
+
+    private boolean addUserToDatabase(String usuario, String email, String contrasenia) {
         boolean resultado = false;
         try(Connection connection = obtenerConexion()) {
             PreparedStatement ingresoUsuario = connection.prepareStatement("INSERT INTO usuarios (usuario, email, contrasenia, creacion) VALUES (?, ?, ?, CURRENT_TIMESTAMP)");
@@ -92,6 +98,7 @@ public class register extends JDialog{
             System.out.println(rowsAffected + " Usuario registrado correctamente.");
 
             resultado = rowsAffected > 0;
+
         }
         catch (SQLException e){
             System.err.println("Error al ingresar usuario: " + e.getMessage());
@@ -99,7 +106,7 @@ public class register extends JDialog{
         finally {
             cerrarConexion();
         }
-        return user;
+        return resultado;
     }
 
     public static void main(String[] args) {
